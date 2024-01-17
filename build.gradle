@@ -4,22 +4,32 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:${elasticsearchVersion}"
+        classpath "org.opensearch.gradle:build-tools:${opensearchVersion}"
+        classpath "org.opensearch:opensearch-core:${opensearchVersion}"
+        classpath "org.opensearch:opensearch-common:${opensearchVersion}"
     }
 }
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
 
-group = 'org.elasticsearch'
-version = "$elasticsearchVersion"
-description = 'elasticsearch-analysis-hanlp'
+group = 'org.opensearch.plugin'
+version = "$opensearchVersion"
+description = 'opensearch-analysis-hanlp'
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'opensearch.opensearchplugin'
 
-esplugin {
-    name 'analysis-hanlp'
-    description 'HanLP Analyzer for ElasticSearch'
-    classname 'org.elasticsearch.plugin.analysis.hanlp.AnalysisHanLPPlugin'
+loggerUsageCheck.enabled = false
+validateNebulaPom.enabled = false
+validateShadowPom.enabled = false
+
+opensearchplugin {
+    name 'opensearch-analysis-hanlp'
+    description 'HanLP Analyzer for Opensearch'
+    classname 'org.opensearch.plugin.analysis.hanlp.AnalysisHanLPPlugin'
     licenseFile = rootProject.file('LICENSE.txt')
     noticeFile = rootProject.file('NOTICE.txt')
 }
@@ -38,8 +48,8 @@ sourcesJar {
 
 assemble {
     doLast {
-        file("build/distributions/analysis-hanlp-${elasticsearchVersion}.zip").renameTo(file("build/distributions/${rootProject.name}-${elasticsearchVersion}.zip"))
-        ant.checksum file: "build/distributions/${rootProject.name}-${elasticsearchVersion}.zip"
+        file("build/distributions/opensearch-analysis-hanlp-${opensearchVersion}.zip").renameTo(file("build/distributions/${rootProject.name}.zip"))
+        ant.checksum file: "build/distributions/${rootProject.name}.zip"
     }
 }
 
@@ -53,20 +63,14 @@ configurations.all() {
 }
 
 dependencies {
-    compile 'com.hankcs:hanlp:portable-1.7.8'
-    compile 'commons-codec:commons-codec:1.15'
-    compile 'commons-logging:commons-logging:1.2'
-    compile 'org.apache.httpcomponents:httpclient:4.5.13'
-    compile 'org.apache.httpcomponents:httpcore:4.4.14'
+    implementation 'com.hankcs:hanlp:portable-1.7.8'
+    implementation 'commons-codec:commons-codec:1.15'
+    implementation 'commons-logging:commons-logging:1.2'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.14'
 }
 
-checkstyle {
-    sourceSets = [project.sourceSets.main]
-}
 
-checkstyleMain {
-    excludes = ['**/PorterStemmer.java']
-}
 
 forbiddenApisMain {
     excludes = [
