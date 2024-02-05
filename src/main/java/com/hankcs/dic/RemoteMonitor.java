@@ -6,14 +6,14 @@ import com.hankcs.hanlp.corpus.tag.Nature;
 import com.hankcs.hanlp.dictionary.CustomDictionary;
 import com.hankcs.hanlp.dictionary.other.CharTable;
 import com.hankcs.hanlp.utility.LexiconUtility;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpHead;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Project: opensearch-analysis-hanlp
@@ -101,7 +102,7 @@ public class RemoteMonitor implements Runnable {
         CloseableHttpResponse response = null;
         try {
             response = httpclient.execute(head);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            if (response.getCode() == HttpStatus.SC_OK) {
                 if ((response.getLastHeader(HttpHeaders.LAST_MODIFIED) != null)
                         && !response.getLastHeader(HttpHeaders.LAST_MODIFIED).getValue().equalsIgnoreCase(lastModified)) {
                     loadRemoteCustomWords(response);
@@ -109,10 +110,10 @@ public class RemoteMonitor implements Runnable {
                         && !response.getLastHeader(HttpHeaders.ETAG).getValue().equalsIgnoreCase(eTags)) {
                     loadRemoteCustomWords(response);
                 }
-            } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+            } else if (response.getCode() == HttpStatus.SC_NOT_MODIFIED) {
                 logger.info("remote_ext_dict {} is without modified", location);
             } else {
-                logger.info("remote_ext_dict {} return bad code {}", location, response.getStatusLine().getStatusCode());
+                logger.info("remote_ext_dict {} return bad code {}", location, response.getCode());
             }
         } catch (Exception e) {
             logger.error(() -> new ParameterizedMessage("remote_ext_dict load from [{}] error", location), e);
@@ -161,7 +162,7 @@ public class RemoteMonitor implements Runnable {
         get.setConfig(buildRequestConfig());
         try {
             response = httpclient.execute(get);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            if (response.getCode() == HttpStatus.SC_OK) {
                 in = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), analysisDefaultCharset(response)));
                 String line;
                 boolean firstLine = true;
@@ -211,7 +212,7 @@ public class RemoteMonitor implements Runnable {
         get.setConfig(buildRequestConfig());
         try {
             response = httpclient.execute(get);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            if (response.getCode() == HttpStatus.SC_OK) {
                 in = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), analysisDefaultCharset(response)));
                 String line;
                 boolean firstLine = true;
@@ -236,9 +237,9 @@ public class RemoteMonitor implements Runnable {
 
     private RequestConfig buildRequestConfig() {
         return RequestConfig.custom()
-                .setConnectionRequestTimeout(10 * 1000)
-                .setConnectTimeout(10 * 1000)
-                .setSocketTimeout(60 * 1000)
+                .setConnectionRequestTimeout(10 * 1000, TimeUnit.MILLISECONDS)
+                .setConnectTimeout(10 * 1000, TimeUnit.MILLISECONDS)
+                .setResponseTimeout(60 * 1000, TimeUnit.MILLISECONDS)
                 .build();
     }
 
@@ -251,8 +252,8 @@ public class RemoteMonitor implements Runnable {
     private Charset analysisDefaultCharset(CloseableHttpResponse response) {
         Charset charset = StandardCharsets.UTF_8;
         // 获取编码，默认为utf-8
-        if (response.getEntity().getContentType().getValue().contains("charset=")) {
-            String contentType = response.getEntity().getContentType().getValue();
+        if (response.getEntity().getContentType().contains("charset=")) {
+            String contentType = response.getEntity().getContentType();
             charset = Charset.forName(contentType.substring(contentType.lastIndexOf("=") + 1));
         }
         return charset;
