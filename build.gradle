@@ -11,7 +11,6 @@ buildscript {
 }
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group = 'org.opensearch.plugin'
@@ -24,7 +23,6 @@ apply plugin: 'opensearch.opensearchplugin'
 
 loggerUsageCheck.enabled = false
 validateNebulaPom.enabled = false
-validateShadowPom.enabled = false
 
 opensearchplugin {
     name 'opensearch-analysis-hanlp'
