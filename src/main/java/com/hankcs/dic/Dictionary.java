@@ -46,7 +46,7 @@ public class Dictionary {
     }
 
     private void setUp() {
-        Path configDir = configuration.getEnvironment().configFile().resolve(AnalysisHanLPPlugin.PLUGIN_NAME);
+        Path configDir = configuration.getEnvironment().pluginsFile().resolve(AnalysisHanLPPlugin.PLUGIN_NAME + "/config");
         DictionaryFileCache.configCachePath(configuration);
         DictionaryFileCache.loadCache();
         RemoteDictConfig.initial(configDir.resolve(REMOTE_CONFIG_FILE_NAME).toString());

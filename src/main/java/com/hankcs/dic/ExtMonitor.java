@@ -45,26 +45,6 @@ public class ExtMonitor implements Runnable {
         reloadProperty();
         List<DictionaryFile> currentDictionaryFileList = getCurrentDictionaryFileList(HanLP.Config.CustomDictionaryPath);
         logger.debug("hanlp current custom dictionary: {}", Arrays.toString(currentDictionaryFileList.toArray()));
-        boolean isModified = false;
-        for (DictionaryFile currentDictionaryFile : currentDictionaryFileList) {
-            if (!originalDictionaryFileList.contains(currentDictionaryFile)) {
-                isModified = true;
-                break;
-            }
-        }
-        if (isModified) {
-            logger.info("reloading hanlp custom dictionary");
-            try {
-                AccessController.doPrivileged((PrivilegedAction) CustomDictionaryUtility::reload);
-            } catch (Exception e) {
-                logger.error("can not reload hanlp custom dictionary", e);
-            }
-            DictionaryFileCache.setCustomDictionaryFileList(currentDictionaryFileList);
-            DictionaryFileCache.writeCache();
-            logger.info("finish reload hanlp custom dictionary");
-        } else {
-            logger.info("hanlp custom dictionary isn't modified, so no need reload");
-        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
