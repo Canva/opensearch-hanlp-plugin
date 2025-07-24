@@ -49,7 +49,7 @@ public class AnalysisHanLPPlugin extends Plugin implements AnalysisPlugin {
         if (home == null) {
             throw new IllegalStateException(Environment.PATH_HOME_SETTING.getKey() + " is not configured");
         } else {
-            Path configDir = PathUtils.get(home, "config", AnalysisHanLPPlugin.PLUGIN_NAME);
+            Path configDir = PathUtils.get(home, "plugins", AnalysisHanLPPlugin.PLUGIN_NAME, "config");
             Predefine.HANLP_PROPERTIES_PATH = configDir.resolve(CONFIG_FILE_NAME).toString();
             logger.debug("hanlp properties path: {}", Predefine.HANLP_PROPERTIES_PATH);
         }
